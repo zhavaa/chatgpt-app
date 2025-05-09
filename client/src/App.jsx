@@ -5,6 +5,7 @@ export default function App() {
   const [message, setMessage] = useState('');
   const [reply, setReply] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [listening, setListening] = useState(false);
   const recognitionRef = useRef(null);
 
@@ -32,7 +33,6 @@ export default function App() {
     if (listening) {
       recognitionRef.current.stop();
     } else {
-      setMessage('');
       recognitionRef.current.start();
       setListening(true);
     }
@@ -41,6 +41,8 @@ export default function App() {
   const sendChat = async () => {
     if (!message.trim()) return;
     setLoading(true);
+    setError('');
+    setReply('');
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
@@ -52,6 +54,7 @@ export default function App() {
       setReply(data.reply);
     } catch (err) {
       console.error(err);
+      setError('Не удалось получить ответ от сервера.');
     } finally {
       setLoading(false);
     }
@@ -62,7 +65,7 @@ export default function App() {
       <div className="w-full max-w-lg px-4">
         {/* Заголовок над формой */}
         <h1 className="text-white text-center text-3xl font-bold mb-6">
-          Добро пожаловать ChatGPT-клиент
+          Добро пожаловать в наш ChatGPT-клиент
         </h1>
 
         <div className="flex items-center bg-white bg-opacity-10 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg">
@@ -94,11 +97,52 @@ export default function App() {
             disabled={loading}
             className="p-2 bg-white bg-opacity-20 rounded-full text-white hover:bg-opacity-30 transition disabled:opacity-50"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+            {loading ? (
+              <svg
+                className="animate-spin h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8h8a8 8 0 01-8 8v-8H4z"
+                ></path>
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            )}
           </button>
         </div>
+
+        {/* Ошибка */}
+        {error && (
+          <p className="mt-2 text-red-500 text-center">
+            {error}
+          </p>
+        )}
 
         {/* Ответ от сервера */}
         {reply && (
